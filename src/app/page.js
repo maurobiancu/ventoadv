@@ -1,9 +1,15 @@
-import { dato } from '../lib/dato';
+import { GraphQLClient } from 'graphql-request';
 
 export const revalidate = 60;
 
 export default async function Home() {
-  const client = dato(false);
+  const client = new GraphQLClient('https://graphql.datocms.com/', {
+    headers: {
+      Authorization: `Bearer ${process.env.DATOCMS_API_TOKEN}`,
+      'X-Include-Drafts': 'false',
+    },
+  });
+
   const data = await client.request(`{
     _site { globalSeo { siteName } }
   }`);
