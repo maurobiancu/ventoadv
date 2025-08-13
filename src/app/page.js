@@ -1,6 +1,8 @@
 import { dato } from '../lib/dato';
 
-export const revalidate = 60; // ISR: rigenera periodicamente
+// export const revalidate = 60;
+export const dynamic = 'force-dynamic';
+
 
 export default async function Home() {
   let siteName = 'Ventoadv';
