@@ -1,37 +1,39 @@
 import { GraphQLClient } from 'graphql-request';
 
-// dati freschi ad ogni richiesta
+// dati sempre freschi
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
-  let usedDato = false;
-  let siteName = 'Ventoadv';
-  let error = null;
-
-  try {
-    const client = new GraphQLClient('https://graphql.datocms.com/', {
-      headers: { Authorization: `Bearer ${process.env.DATOCMS_API_TOKEN}` },
-    });
-
-    const res = await client.request(`{ _site { globalSeo { siteName } } }`);
-    const name = res?._site?.globalSeo?.siteName;
-    if (name) {
-      siteName = name;
-      usedDato = true;
+const QUERY = /* GraphQL */ `
+  query Home($limit: IntType = 10) {
+    _site { globalSeo { siteName } }
+    allPosts(first: $limit, orderBy: _firstPublishedAt_DESC) {
+      id
+      title
+      slug
     }
-  } catch (e) {
-    error = e?.response?.errors ?? e?.message ?? String(e);
   }
+`;
+
+export default async function Home() {
+  const client = new GraphQLClient('https://graphql.datocms.com/', {
+    headers: { Authorization: `Bearer ${process.env.DATOCMS_API_TOKEN}` },
+  });
+
+  const data = await client.request(QUERY, { limit: 10 });
+  const siteName = data?._site?.globalSeo?.siteName ?? 'Ventoadv';
+  const posts = data?.allPosts ?? [];
 
   return (
     <main style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
       <h1>{siteName}</h1>
-      <p>{usedDato ? 'DatoCMS OK ✅' : 'Fallback locale ⛑️'}</p>
-      {error && (
-        <pre style={{ background: '#f5f5f5', padding: 12, marginTop: 12 }}>
-          {JSON.stringify(error, null, 2)}
-        </pre>
-      )}
+      <ul>
+        {posts.map(p => (
+          <li key={p.id}>
+            <a href={`/post/${p.slug}`}>{p.title}</a>
+          </li>
+        ))}
+      </ul>
+      {posts.length === 0 && <p>Nessun post pubblicato.</p>}
     </main>
   );
 }
