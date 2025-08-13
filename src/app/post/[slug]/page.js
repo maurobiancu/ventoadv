@@ -8,6 +8,7 @@ const POST_QUERY = /* GraphQL */ `
     post(filter: { slug: { eq: $slug } }) {
       title
       slug
+      content
     }
   }
 `;
