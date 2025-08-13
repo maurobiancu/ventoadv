@@ -24,7 +24,7 @@ export default async function PostPage({ params }) {
     <main style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
       <h1>{post.title}</h1>
       <p>Slug: {post.slug}</p>
-      <p>{post.Content}</p>
+      <p>{post.content}</p>
     </main>
   );
 }
