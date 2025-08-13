@@ -35,7 +35,7 @@ export default async function Home() {
               <img
                 src={`${p.img.url}?w=640&h=360&fit=crop`}
                 alt={p.img.alt || p.title}
-                style={{ maxWidth: '100%', borderRadius: 8 }}
+                style={{ maxWidth: '50%', borderRadius: 8 }}
               />
             )}
             <h3 style={{ marginTop: 12 }}>
