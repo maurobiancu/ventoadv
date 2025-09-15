@@ -1,70 +1,43 @@
-// Importa il client GraphQL
-import { GraphQLClient } from 'graphql-request';
+import { dato } from '../../lib/dato';
 
-// Definisci la query GraphQL per il modello "Page"
-const HOMEPAGE_QUERY = `{
-  allPages(first: "1", orderBy: _firstPublishedAt_DESC) {
-    title
-    hero {
-      responsiveImage {
-        srcSet
-        webpSrcSet
-        sizes
-        src
-        width
-        height
-        alt
-        title
-      }
-    }
-    text(markdown: true)
-    seo {
+// niente prerender: leggi DatoCMS ad ogni richiesta
+export const dynamic = 'force-dynamic';
+
+const QUERY = /* GraphQL */ `
+  query Test {
+    allPages(first: 1, orderBy: _firstPublishedAt_DESC) {
       title
-      description
-      image {
-        url
-      }
+      text
+      hero { url alt }
     }
   }
-}`;
+`;
 
-// Questa funzione si occupa del fetching dei dati.
-// Non ha bisogno di essere getStaticProps. È una semplice funzione async.
-async function getPageData() {
-  const client = new GraphQLClient('https://graphql.datocms.com/', {
-    headers: {
-      authorization: `Bearer ${process.env.DATO_CMS_API_TOKEN}`,
-    },
-  });
+export default async function TestPage() {
+  try {
+    const client = dato(false); // usa Authorization: Bearer ${DATOCMS_API_TOKEN}
+    const { allPages } = await client.request(QUERY);
+    const page = allPages?.[0];
 
-  const data = await client.request(HOMEPAGE_QUERY);
-  return data;
-}
+    if (!page) {
+      return <main style={{padding:24}}><h1>Nessun contenuto</h1></main>;
+    }
 
-// Questo è il tuo componente Server Component
-export default async function Page() {
-  // Chiama la funzione di fetching direttamente qui
-  const data = await getPageData();
-  const homePage = data.allPages[0];
-
-  if (!homePage) {
-    return <div>Caricamento o dati non disponibili...</div>;
+    return (
+      <main style={{ padding: 24, maxWidth: 900, margin: '0 auto' }}>
+        <h1>{page.title}</h1>
+        {page.hero?.url && (
+          <img
+            src={`${page.hero.url}?w=1200`}
+            alt={page.hero.alt || page.title}
+            style={{ width: '100%', height: 'auto', borderRadius: 8, margin: '16px 0' }}
+          />
+        )}
+        {page.text && <p style={{ lineHeight: 1.6 }}>{page.text}</p>}
+      </main>
+    );
+  } catch (e) {
+    console.error('DatoCMS /test error:', e?.response?.errors ?? e?.message ?? e);
+    return <main style={{padding:24}}><h1>Errore caricamento</h1></main>;
   }
-
-  return (
-    <div>
-      {homePage.title && <h1>{homePage.title}</h1>}
-      
-      {homePage.text && (
-        <div dangerouslySetInnerHTML={{ __html: homePage.text }} />
-      )}
-      
-      {/* Aggiungi qui gli altri elementi della tua pagina */}
-    </div>
-  );
 }
-
-// L'App Router gestisce automaticamente la cache e la rigenerazione.
-// Se vuoi un comportamento simile a `revalidate: 60`, puoi aggiungerlo
-// al fetch dell'API o in un layout:
-// export const revalidate = 60;

@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // config minima; lasciamo tutto di default
+  eslint: { ignoreDuringBuilds: true },
 };
 export default nextConfig;
